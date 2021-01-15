@@ -25,6 +25,8 @@ The cloud icons are by Kenney - https://kenney.nl/
 
 **Q:** How do I add interpolation to reduce jitter?
 
-**A:** NetworkSyncer nodes check their parent for a custom property interpolating function in this format: "interpolate_[variable name from synced properties]". If the parent has this function, it will use that for interpolation by sending the old state, new state, and interpolation ratio. Place a function with that name in the parent.
+**A:** NetworkSyncer nodes check their parent for a custom property interpolating function in this format: "interpolate_[variable name from synced properties]". If the parent has this function, it will use that for interpolation by sending the old variable, new variable, and interpolation ratio. Place a function with that name in the parent.
 
-Ex: place 'func interpolate_velocity(old_state: Networking.State, new_state: Networking.State, interp: float)' in the parent function and "velocity" in the NetworkSyncer property array.
+Ex: place 'func interpolate_velocity(old_ver: Vector3, new_vel: Vector3, interp: float)' in the parent function and "velocity" in the NetworkSyncer property array.
+
+There is an example of this in the Player Scene.
