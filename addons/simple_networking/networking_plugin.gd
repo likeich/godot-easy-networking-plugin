@@ -6,7 +6,7 @@ func _enter_tree():
 	# Initialization of the plugin goes here.
 	# Add the new type with a name, a parent type, a script and an icon.
 	add_autoload_singleton("Networking", "res://addons/simple_networking/networking.gd")
-	add_custom_type("NetworkSyncer", "Node", load("network_syncer.gd"), preload("cloud_upload.png"))
+	add_custom_type("NetworkSyncer", "Node", load("res://addons/simple_networking/network_syncer.gd"), preload("res://addons/simple_networking/cloud_upload.png"))
 
 
 func _exit_tree():

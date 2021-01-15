@@ -15,4 +15,4 @@ shape = SubResource( 1 )
 
 [node name="NetworkSyncer" type="Node" parent="."]
 script = ExtResource( 2 )
-synced_parent_properties = [ "translation" ]
+synced_properties = PoolStringArray( "translation" )
