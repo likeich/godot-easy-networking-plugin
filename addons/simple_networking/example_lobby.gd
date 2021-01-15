@@ -1,5 +1,7 @@
 extends Control
 
+export var scene_to_start: String
+
 onready var connect = $Connect
 onready var lobby = $Lobby
 onready var player_list = $Lobby/MarginContainer/VBoxContainer/PlayerList
@@ -45,7 +47,7 @@ func _on_ExitButton_pressed():
 
 
 func _on_StartButton_pressed():
-	Networking.rpc("start_game", "res://SimpleMovement.tscn")
+	Networking.rpc("start_game", scene_to_start)
 
 func update_players():
 	for player in player_list.get_children():

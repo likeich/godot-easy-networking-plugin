@@ -227,6 +227,18 @@ func update_server_client_state(old_state: State, new_state: State, object_name:
 	if object != null and !object.is_network_master():
 		object.get_node("NetworkSyncer").interpolate_state(old_state, new_state)
 
+remotesync func create_players(player_object: PackedScene, their_parent: Node) -> Array:
+	var player_array = []
+	
+	for id in player_ids:
+		var new_player = player_object.instance()
+		new_player.set_network_master(id)
+		new_player.name = str(id)
+		their_parent.add_child(new_player)
+		player_array.append(new_player)
+	
+	return player_array
+
 ################################################################################
 # Custom Classes
 

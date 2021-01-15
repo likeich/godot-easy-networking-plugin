@@ -16,7 +16,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Networking Plugin"
-run/main_scene="res://Lobby.tscn"
+run/main_scene="res://addons/simple_networking/Lobby.tscn"
 config/icon="res://icon.png"
 
 [autoload]
