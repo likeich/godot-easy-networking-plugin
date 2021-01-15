@@ -6,6 +6,7 @@ onready var connect = $Connect
 onready var lobby = $Lobby
 onready var player_list = $Lobby/MarginContainer/VBoxContainer/PlayerList
 onready var start_button = $Lobby/MarginContainer/VBoxContainer/HBoxContainer2/StartButton
+onready var ip_box = find_node("IPAddress")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -36,7 +37,7 @@ func _on_HostButton_pressed():
 
 
 func _on_JoinButton_pressed():
-	Networking.start_client()
+	Networking.start_client(ip_box.text)
 
 
 func _on_ExitButton_pressed():

@@ -88,6 +88,7 @@ func _server_disconnected():
 # Gets the device global IP from a web API.
 func set_my_global_ip(_result, _response_code, _headers, body):
 	my_global_ip = body.get_string_from_utf8()
+	print(my_global_ip)
 
 func get_local_ip():
 	for x in IP.get_local_addresses():
@@ -99,6 +100,7 @@ func start_server(port: int = DEFAULT_PORT, max_players: int = MAX_PLAYERS):
 		network.close_connection()
 	
 	network = NetworkedMultiplayerENet.new()
+	network.compression_mode = NetworkedMultiplayerENet.COMPRESS_ZLIB
 	network.create_server(port, max_players)
 	get_tree().set_network_peer(network)
 	player_ids.append(1)
@@ -108,6 +110,7 @@ func start_client(address: String = "127.0.0.1", port: int = DEFAULT_PORT):
 		network.close_connection()
 	
 	network = NetworkedMultiplayerENet.new()
+	network.compression_mode = NetworkedMultiplayerENet.COMPRESS_ZLIB
 	network.create_client(address, port)
 	get_tree().set_network_peer(network)
 
