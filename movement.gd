@@ -35,3 +35,6 @@ func _physics_process(_delta):
 	if Input.is_action_just_pressed("change_color"):
 		custom_color = Color(randf(), randf(), randf())
 		change_color(custom_color)
+
+func interpolate_translation(old: Vector3, new: Vector3, interp_ratio: float):
+	translation = lerp(old, new, interp_ratio)
