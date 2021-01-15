@@ -19,7 +19,7 @@ The cloud icons are by Kenney - https://kenney.nl/
 3. Assign the lobby tscn as the startup scene.
 4. On the lobby scene, set the export variable "scene to start" as the path to the scene your game will take place in.
 5. Create a script for that world that creates players. Networking.create_players() can be used for this.
-6. On the player scene, add the NetworkSync node as a parent of the root node. On it's array export variable, set the names of the variables to be synced. Ensure that the player objects that are puppets aren't going to receive player input.
+6. On the player scene, add the NetworkSync node as a child of the root node. On it's array export variable, set the names of the variables to be synced. Ensure that the player objects that are puppets aren't going to receive player input.
 7. Test it out.
 
 **Q:** How do I add interpolation to reduce jitter?
