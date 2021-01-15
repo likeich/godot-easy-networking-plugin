@@ -176,6 +176,8 @@ func process_world_state():
 		while world_state_buffer.size() > 2 and render_time > world_state_buffer[1][0]:
 			world_state_buffer.remove(0)
 		var interp_ratio = float(render_time - world_state_buffer[0][0]) / float(world_state_buffer[1][0] - world_state_buffer[0][0])
+		interp_ratio = clamp(interp_ratio, 0, 1)
+		print("Calculated: ", interp_ratio)
 		var old_world_state: Array = world_state_buffer[0]
 		var new_world_state: Array = world_state_buffer[1]
 		world_state_changed(old_world_state, new_world_state, interp_ratio)

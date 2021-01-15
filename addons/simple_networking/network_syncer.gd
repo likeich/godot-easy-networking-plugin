@@ -66,6 +66,8 @@ func interpolate_state(old_state: Networking.State, new_state: Networking.State,
 			continue
 		elif body.has_method("interpolate_" + synced_properties[num]):
 			body.call("interpolate_" + synced_properties[num], old_state.custom_data[num], new_state.custom_data[num], interp_ratio)
+		elif body.has_method("set_" + synced_properties[num]):
+			body.call("set_" + synced_properties[num], new_state.custom_data[num])
 		else:
 			#print("Not Null: ", new_state.custom_data[num])
 			body.set(synced_properties[num], new_state.custom_data[num])

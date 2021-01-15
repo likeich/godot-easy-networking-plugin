@@ -27,6 +27,10 @@ Networking="*res://addons/simple_networking/networking.gd"
 
 formats/zlib/compression_level=7
 
+[display]
+
+window/stretch/mode="viewport"
+
 [editor_plugins]
 
 enabled=PoolStringArray( "simple_networking" )
