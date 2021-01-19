@@ -11,6 +11,7 @@ var server_updates_per_second := 20.0
 
 # Signals to enable custom behavior in lobbies and matches.
 signal player_list_changed(player_list)
+signal player_data_changed()
 signal connection_succeeded()
 signal connection_failed()
 signal disconnected()
@@ -35,6 +36,8 @@ var delta_latency := 0
 var client_clock := 0
 var latency_array := []
 var server_time_difference: int
+
+var debug_label: Label
 
 onready var http := HTTPRequest.new()
 onready var timer := Timer.new()
@@ -72,6 +75,10 @@ func _physics_process(delta):
 		print(client_clock)
 		process_world_state()
 
+func _process(delta):
+	if debug_label:
+		update_debug()
+
 func update_rate_timeout():
 	server_can_update = true
 
@@ -83,7 +90,9 @@ func _player_connected(id):
 # Removes a player from the list and sends a signal
 func _player_disconnected(id):
 	player_ids.erase(id)
+	custom_player_data.erase(str(id))
 	emit_signal("player_list_changed", player_ids)
+	emit_signal("player_data_changed")
 
 # Client connects and adds it's own ID to the list. The server ID will be added
 # with _player_connected.
@@ -112,6 +121,10 @@ func _connected_fail():
 # Callback from SceneTree, only for clients (not server).
 func _server_disconnected():
 	emit_signal("disconnected")
+
+remotesync func register_player_data(data: Dictionary):
+	custom_player_data[str(get_tree().get_rpc_sender_id())] = data
+	emit_signal("player_data_changed")
 
 # Gets the device global IP from a web API.
 func set_my_global_ip(_result, _response_code, _headers, body):
@@ -163,6 +176,29 @@ func create_players(player_object: PackedScene, their_parent: Node) -> Array:
 		player_array.append(new_player)
 	
 	return player_array
+
+func show_debug() -> void:
+	for child in get_children():
+		if child.name == "DebugLayer":
+			child.queue_free()
+			debug_label = null
+			return
+	
+	var canvas = CanvasLayer.new()
+	canvas.name = "DebugLayer"
+	debug_label = Label.new()
+	
+	canvas.add_child(debug_label)
+	add_child(canvas)
+
+func update_debug():
+	var text = ""
+	text += str("Latency to server: ", latency, "\n")
+	text += str("Server time difference: ", server_time_difference, "\n")
+	text += str("Player Ids: ", player_ids, "\n")
+	text += str("Custom player data: ", custom_player_data, "\n")
+	
+	debug_label.text = text
 
 ################################################################################
 # Sync Functions
@@ -239,7 +275,6 @@ remote func process_state(state_array: Array, object_name: String = ""):
 
 # Adds the state at the given name if its timestamp is more recent.
 func check_timestamps(new_state: State, added_name: String):
-	print("Checking timestamps")
 	if new_state.timestamp > server_received_states.get(added_name).timestamp:
 		var old_state: State = server_received_states[added_name]
 		server_received_states[added_name] = new_state

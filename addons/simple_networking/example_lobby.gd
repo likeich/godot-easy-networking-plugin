@@ -14,27 +14,33 @@ func _ready():
 	_err = Networking.connect("connection_failed", self, "_failure")
 	_err = Networking.connect("player_list_changed", self, "_players_changed")
 	_err = Networking.connect("global_ip_found", self, "set_global_ip")
+	_err = Networking.connect("player_data_changed", self, "update_players")
 	print(Networking.my_local_ip)
+	Networking.show_debug()
 
 func _connected():
 	connect.hide()
 	lobby.show()
 	
-	update_players()
 	start_button.disabled = true
 
 func _failure():
 	print("Failed!")
 
 func _players_changed(_players: Array):
-	update_players()
+	var my_data: Dictionary = {}
+	my_data["name"] = find_node("Name").text
+	Networking.rpc_id(0, "register_player_data", my_data)
 
 func _on_HostButton_pressed():
 	Networking.start_server()
 	connect.hide()
 	lobby.show()
 	
-	update_players()
+	
+	var my_data: Dictionary = {}
+	my_data["name"] = find_node("Name").text
+	Networking.rpc_id(0, "register_player_data", my_data)
 	start_button.disabled = false
 
 
@@ -46,19 +52,19 @@ func _on_ExitButton_pressed():
 	Networking.exit()
 	connect.show()
 	lobby.hide()
-	update_players()
 
 
 func _on_StartButton_pressed():
+	Networking.show_debug()
 	Networking.rpc("start_game", scene_to_start)
 
 func update_players():
 	for player in player_list.get_children():
 		player.queue_free()
 	
-	for id in Networking.player_ids:
+	for id in Networking.custom_player_data.keys():
 		var player = Label.new()
-		player.text = str(id)
+		player.text = str(Networking.custom_player_data[id]["name"])
 		
 		player_list.add_child(player)
 

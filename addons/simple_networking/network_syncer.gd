@@ -54,7 +54,6 @@ func send_state():
 	#Calculates if a required packet should be sent.
 	var calculation: int = int(round((update_percent_required / 100) * updates_per_second))
 	if update_count % int(round(updates_per_second / calculation)) == 0: 
-		print("Req: ", update_count)
 		set_previous_full_state(state)
 		Networking.send_state(state, body.name)
 		sync_timer.start((1 / updates_per_second))
