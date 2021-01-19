@@ -4,8 +4,8 @@ export var scene_to_start: String
 
 onready var connect = $Connect
 onready var lobby = $Lobby
-onready var player_list = $Lobby/MarginContainer/VBoxContainer/PlayerList
-onready var start_button = $Lobby/MarginContainer/VBoxContainer/HBoxContainer2/StartButton
+onready var player_list = find_node("PlayerList")
+onready var start_button = find_node("StartButton")
 onready var ip_box = find_node("IPAddress")
 
 # Called when the node enters the scene tree for the first time.
@@ -13,6 +13,8 @@ func _ready():
 	var _err = Networking.connect("connection_succeeded", self, "_connected")
 	_err = Networking.connect("connection_failed", self, "_failure")
 	_err = Networking.connect("player_list_changed", self, "_players_changed")
+	_err = Networking.connect("global_ip_found", self, "set_global_ip")
+	print(Networking.my_local_ip)
 
 func _connected():
 	connect.hide()
@@ -59,3 +61,6 @@ func update_players():
 		player.text = str(id)
 		
 		player_list.add_child(player)
+
+func set_global_ip():
+	ip_box.text = Networking.my_global_ip

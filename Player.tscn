@@ -18,4 +18,6 @@ material = SubResource( 2 )
 
 [node name="NetworkSyncer" type="Node" parent="."]
 script = ExtResource( 2 )
-synced_properties = PoolStringArray( "translation", "rotation", "custom_color" )
+synced_properties = PoolStringArray( "translation", "custom_color", "rotation" )
+synced_booleans = PoolStringArray( "moving" )
+update_percent_required = 50.0
