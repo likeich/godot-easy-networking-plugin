@@ -81,6 +81,8 @@ func send_state():
 
 # Sets the received variables in the parent object.
 func interpolate_state(old_state: Networking.State, new_state: Networking.State, interp_ratio: float = .5):
+	if old_state.timestamp >= new_state.timestamp: return
+	
 	for num in new_state.custom_data.size():
 		if new_state.custom_data[num] == null: # Can be null from set_changed_states.
 			continue

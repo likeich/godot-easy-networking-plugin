@@ -27,6 +27,7 @@ var custom_player_data = {} # Holds custom info from every player (name, color, 
 var server_can_update := true
 var server_local_states: Dictionary = {}
 var server_received_states: Dictionary = {}
+var cached_node_paths: Dictionary = {}
 var last_world_state_timestamp: int = 0
 var world_state_buffer: Array = []
 
@@ -72,7 +73,6 @@ func _physics_process(delta):
 		timer.start(1.0/server_updates_per_second)
 	# Client process
 	if is_instance_valid(get_tree().network_peer) and !get_tree().is_network_server():
-		print(client_clock)
 		process_world_state()
 
 func _process(delta):
@@ -193,6 +193,7 @@ func show_debug() -> void:
 
 func update_debug():
 	var text = ""
+	text += str("FPS: ", Engine.get_frames_per_second(), "\n")
 	text += str("Latency to server: ", latency, "\n")
 	text += str("Server time difference: ", server_time_difference, "\n")
 	text += str("Player Ids: ", player_ids, "\n")
@@ -339,10 +340,15 @@ func process_world_state():
 # TODO: Refactor to save nodepaths instead of finding the node every time.
 func world_state_changed(old_world_state: Array, new_world_state: Array, interp_ratio: float):
 	for object_name in new_world_state[1].keys():
-		var object = get_tree().get_current_scene().find_node(object_name, true, false)
+		var object: Node
+		if cached_node_paths.has(object_name):
+			object = get_node(cached_node_paths[object_name])
+		else:
+			object = get_tree().get_current_scene().find_node(object_name, true, false)
+			cached_node_paths[object_name] = object.get_path()
 		
 		# If the node exists and you are not it's master, then sync.
-		if object != null and !object.is_network_master():
+		if object != null and !object.is_network_master() and old_world_state[1].has(object_name):
 			var old_state = Networking.State.to_instance(old_world_state[1][object_name])
 			var new_state = Networking.State.to_instance(new_world_state[1][object_name])
 			if new_state != null:

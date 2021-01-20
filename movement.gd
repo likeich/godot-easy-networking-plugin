@@ -32,7 +32,6 @@ func _physics_process(_delta):
 		net_set_custom_color(custom_color)
 
 func interpolate_translation(old: Vector3, new: Vector3, interp_ratio: float):
-	#print("Ratio: ", interp_ratio)
 	translation = lerp(old, new, interp_ratio)
 
 func net_set_custom_color(color: Color):

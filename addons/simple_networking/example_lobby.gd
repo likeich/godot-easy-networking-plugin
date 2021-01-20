@@ -55,7 +55,6 @@ func _on_ExitButton_pressed():
 
 
 func _on_StartButton_pressed():
-	Networking.show_debug()
 	Networking.rpc("start_game", scene_to_start)
 
 func update_players():
