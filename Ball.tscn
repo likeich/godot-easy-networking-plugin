@@ -28,4 +28,5 @@ script = ExtResource( 2 )
 server_owned = true
 synced_properties = PoolStringArray( "direction", "translation" )
 updates_per_second = 10.0
+update_percent_required = 10.0
 [connection signal="timeout" from="MoveTimer" to="." method="_on_MoveTimer_timeout"]

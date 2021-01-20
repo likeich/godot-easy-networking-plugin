@@ -26,6 +26,7 @@ var custom_player_data = {} # Holds custom info from every player (name, color, 
 
 var server_can_update := true
 var server_local_states: Dictionary = {}
+var last_local_timestamps: Dictionary = {}
 var server_received_states: Dictionary = {}
 var cached_node_paths: Dictionary = {}
 var last_world_state_timestamp: int = 0
@@ -198,6 +199,7 @@ func update_debug():
 	text += str("Server time difference: ", server_time_difference, "\n")
 	text += str("Player Ids: ", player_ids, "\n")
 	text += str("Custom player data: ", custom_player_data, "\n")
+	text += str("Timestamps: ", last_local_timestamps, "\n")
 	
 	debug_label.text = text
 
@@ -298,8 +300,17 @@ func send_world_state():
 		
 		# Add the server local states to the state dictionary.
 		for object_name in server_local_states:
-			var local_state_array = server_local_states[object_name].to_array()
-			states[object_name] = local_state_array
+			if last_local_timestamps.has(object_name):
+				if last_local_timestamps[object_name] >= server_local_states[object_name].timestamp:
+					continue
+				else:
+					last_local_timestamps[object_name] = server_local_states[object_name].timestamp
+					var local_state_array = server_local_states[object_name].to_array()
+					states[object_name] = local_state_array
+			else:
+				last_local_timestamps[object_name] = server_local_states[object_name].timestamp
+				var local_state_array = server_local_states[object_name].to_array()
+				states[object_name] = local_state_array
 			
 		# Add the received states from other players to the state dictionary.
 		for object_name in server_received_states:
@@ -349,9 +360,12 @@ func world_state_changed(old_world_state: Array, new_world_state: Array, interp_
 			cached_node_paths[object_name] = object.get_path()
 		
 		# If the node exists and you are not it's master, then sync.
-		if object != null and !object.is_network_master() and old_world_state[1].has(object_name):
-			var old_state = Networking.State.to_instance(old_world_state[1][object_name])
+		if object != null and !object.is_network_master():
 			var new_state = Networking.State.to_instance(new_world_state[1][object_name])
+			if !old_world_state[1].has(object_name): 
+				object.get_node("NetworkSyncer").interpolate_state(null, new_state, interp_ratio)
+				continue
+			var old_state = Networking.State.to_instance(old_world_state[1][object_name])
 			if new_state != null:
 				object.get_node("NetworkSyncer").interpolate_state(old_state, new_state, interp_ratio)
 

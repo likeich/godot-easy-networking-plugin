@@ -67,8 +67,7 @@ func send_state():
 	var state: Networking.State = Networking.State.new(fill_properties(), fill_booleans(), OS.get_system_time_msecs())
 	
 	#Calculates if a required packet should be sent.
-	var calculation: int = int(round((update_percent_required / 100) * updates_per_second))
-	if update_count % int(round(updates_per_second / calculation)) == 0: 
+	if is_required_update():
 		set_previous_full_state(state)
 		Networking.send_state(state, body.name)
 		sync_timer.start((1 / updates_per_second))
@@ -90,21 +89,25 @@ func send_state():
 
 # Sets the received variables in the parent object.
 func interpolate_state(old_state: Networking.State, new_state: Networking.State, interp_ratio: float = .5):
-	if old_state.timestamp >= new_state.timestamp: return
+	#if old_state.timestamp >= new_state.timestamp: return
 	
 	for num in new_state.custom_data.size():
 		if new_state.custom_data[num] == null: # Can be null from was_changed.
 			continue
-		elif parent_has_interpolator[num]:
+		elif parent_has_interpolator[num] and old_state != null:
 			body.call("interpolate_" + synced_properties[num], old_state.custom_data[num], new_state.custom_data[num], interp_ratio)
 		elif parent_has_setter[num]:
 			body.call("net_set_" + synced_properties[num], new_state.custom_data[num])
 		else:
-			body.set(synced_properties[num], lerp(old_state.custom_data[num], new_state.custom_data[num], interp_ratio))
+			body.set(synced_properties[num], new_state.custom_data[num])
 	
 	var lbool := Networking.LongBool.new(new_state.custom_bools)
 	for num in synced_booleans.size():
 		body.set(synced_booleans[num], lbool.get_value(num))
+
+func is_required_update() -> bool:
+	var calculation: int = int(round((update_percent_required / 100) * updates_per_second))
+	return (calculation != 0) and (update_count % int(round(updates_per_second / calculation)) == 0)
 
 # Updates the previous full state var and returns if the state has new data.
 func was_changed(new_state: Networking.State) -> bool:
@@ -116,6 +119,11 @@ func was_changed(new_state: Networking.State) -> bool:
 		return true
 	
 	return false
+
+func set_states_null(state: Networking.State) -> void:
+	for num in state.custom_data.size():
+		if state.custom_data[num] != previous_full_state.custom_data[num]:
+			state.custom_data[num] = null
 
 func reset_update_count() -> void:
 	if update_count >= updates_per_second:
