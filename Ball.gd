@@ -1,7 +1,7 @@
 extends KinematicBody
 
 
-var direction := Vector2(rand_range(-1, 1), rand_range(-1, 1))
+var direction := Vector2.ZERO
 var speed = .5
 var timesout = 0
 
@@ -12,7 +12,6 @@ func _ready():
 
 func _physics_process(delta):
 	var movement = translation + (Vector3(direction.x, direction.y, 0) * delta * speed)
-	#if name == "ball1": print("t: ", translation, " m: ", movement, " dir: ", direction)
 	translation = movement
 
 

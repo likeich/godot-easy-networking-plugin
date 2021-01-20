@@ -340,6 +340,7 @@ func process_world_state():
 # TODO: Refactor to save nodepaths instead of finding the node every time.
 func world_state_changed(old_world_state: Array, new_world_state: Array, interp_ratio: float):
 	for object_name in new_world_state[1].keys():
+		# Caches the nodepath for performance.
 		var object: Node
 		if cached_node_paths.has(object_name):
 			object = get_node(cached_node_paths[object_name])
