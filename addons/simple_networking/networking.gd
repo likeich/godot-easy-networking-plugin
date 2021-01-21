@@ -40,6 +40,7 @@ var latency_array := []
 var server_time_difference: int
 
 var debug_label: Label
+var networked_objects_count := 0
 
 onready var http := HTTPRequest.new()
 onready var timer := Timer.new()
@@ -200,6 +201,7 @@ func update_debug():
 	text += str("Player Ids: ", player_ids, "\n")
 	text += str("Custom player data: ", custom_player_data, "\n")
 	text += str("Timestamps: ", last_local_timestamps, "\n")
+	text += str("Number of Networked Objects: ", networked_objects_count, "\n")
 	
 	debug_label.text = text
 

@@ -13,6 +13,9 @@ func _ready():
 func _physics_process(delta):
 	var movement = translation + (Vector3(direction.x, direction.y, 0) * delta * speed)
 	translation = movement
+	
+	if Input.is_key_pressed(KEY_Z):
+		queue_free()
 
 
 func _on_MoveTimer_timeout():

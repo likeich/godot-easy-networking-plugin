@@ -17,6 +17,7 @@ var parent_has_setter := []
 onready var body = get_parent() # The object being networked.
 
 func _ready():
+	Networking.networked_objects_count += 1
 	if server_owned:
 		body.set_network_master(1)
 	
@@ -136,3 +137,12 @@ func set_previous_full_state(new_state: Networking.State):
 			previous_full_state.custom_data[property] = new_state.custom_data[property]
 	previous_full_state.custom_bools = new_state.custom_bools
 	previous_full_state.timestamp = new_state.timestamp
+
+func _exit_tree():
+	Networking.networked_objects_count -= 1
+	
+	if is_network_master():
+		rpc("delete_object")
+
+remote func delete_object():
+	body.queue_free()
