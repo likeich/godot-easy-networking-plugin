@@ -150,6 +150,7 @@ func set_previous_full_state(new_state: Networking.State):
 
 func _exit_tree():
 	Networking.networked_objects_count -= 1
+	Networking.remove_timestamp(body.name)
 	
 	if is_network_master():
 		rpc("delete_object")

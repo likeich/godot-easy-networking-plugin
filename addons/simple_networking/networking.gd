@@ -296,6 +296,10 @@ func update_server_client_state(old_state: State, new_state: State, object_name:
 	if object != null and !object.is_network_master():
 		object.get_node("NetworkSyncer").interpolate_state(old_state, new_state)
 
+func remove_timestamp(object_name: String) -> void:
+	server_local_states.erase(object_name)
+	last_local_timestamps.erase(object_name)
+
 # Sends the world state from the server to all of the clients. States are
 # received from clients and added to dictionaries. Those dictionaries are then
 # combined and sent to all clients to be updated locally.
