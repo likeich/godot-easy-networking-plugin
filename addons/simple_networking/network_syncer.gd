@@ -152,7 +152,7 @@ func _exit_tree():
 	Networking.networked_objects_count -= 1
 	Networking.remove_timestamp(body.name)
 	
-	if is_network_master():
+	if is_instance_valid(get_tree().network_peer) and is_network_master():
 		rpc("delete_object")
 
 remote func delete_object():

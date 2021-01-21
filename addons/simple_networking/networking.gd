@@ -85,7 +85,7 @@ func update_rate_timeout():
 	server_can_update = true
 
 func is_server() -> bool:
-	return get_tree().get_network_unique_id() == 1
+	return is_instance_valid(get_tree().network_peer) and get_tree().is_network_server()
 
 # Add player to the list and send a signal.
 func _player_connected(id):
@@ -181,6 +181,17 @@ func create_players(player_object: PackedScene, their_parent: Node) -> Array:
 		player_array.append(new_player)
 	
 	return player_array
+
+#func create_server_objects(object: PackedScene, their_parent: Node, num := 1) -> Array:
+#	var object_array = []
+#
+#	for number in num:
+#		var new_obj = object.instance()
+#		new_obj.set_network_master(1)
+#		their_parent.add_child(new_obj)
+#		object_array.append(new_obj)
+#
+#	return object_array
 
 func show_debug() -> void:
 	for child in get_children():
@@ -366,6 +377,7 @@ func world_state_changed(old_world_state: Array, new_world_state: Array, interp_
 			object = get_node(cached_node_paths[object_name])
 		else:
 			object = get_tree().get_current_scene().find_node(object_name, true, false)
+			if object == null: return
 			cached_node_paths[object_name] = object.get_path()
 		
 		# If the node exists and you are not it's master, then sync.
