@@ -84,6 +84,9 @@ func _process(delta):
 func update_rate_timeout():
 	server_can_update = true
 
+func is_server() -> bool:
+	return get_tree().get_network_unique_id() == 1
+
 # Add player to the list and send a signal.
 func _player_connected(id):
 	player_ids.append(id)

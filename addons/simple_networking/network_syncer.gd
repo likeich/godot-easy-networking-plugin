@@ -13,6 +13,7 @@ var sync_timer = Timer.new()
 var update_count := 0
 var parent_has_interpolator := []
 var parent_has_setter := []
+var parent_has_bool_setter := []
 
 onready var body = get_parent() # The object being networked.
 
@@ -41,6 +42,12 @@ func cache_parent_methods() -> void:
 			parent_has_setter.append(true)
 		else:
 			parent_has_setter.append(false)
+	
+	for num in synced_booleans.size():
+		if body.has_method("net_set_" + synced_booleans[num]):
+			parent_has_bool_setter.append(true)
+		else:
+			parent_has_bool_setter.append(false)
 
 # Used to create the state custom_data from the properties export var.
 func fill_properties() -> Array:
@@ -104,7 +111,10 @@ func interpolate_state(old_state: Networking.State, new_state: Networking.State,
 	
 	var lbool := Networking.LongBool.new(new_state.custom_bools)
 	for num in synced_booleans.size():
-		body.set(synced_booleans[num], lbool.get_value(num))
+		if parent_has_bool_setter[num]:
+			body.call("net_set_" + synced_booleans[num], lbool.get_value(num))
+		else: 
+			body.set(synced_booleans[num], lbool.get_value(num))
 
 func is_required_update() -> bool:
 	var calculation: int = int(round((update_percent_required / 100) * updates_per_second))
