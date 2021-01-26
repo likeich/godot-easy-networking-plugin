@@ -8,7 +8,7 @@ export var update_percent_required := 100.0
 export var print_latency: bool = false
 
 var can_update := true
-var previous_full_state: Networking.State # The last state with no null values.
+var previous_full_state: Networking.NetState # The last state with no null values.
 var sync_timer = Timer.new()
 var update_count := 0
 var parent_has_interpolator := []
@@ -18,12 +18,13 @@ var parent_has_bool_setter := []
 onready var body = get_parent() # The object being networked.
 
 func _ready():
+	Networking.cached_node_paths[body.name] = body.get_path()
 	Networking.networked_objects_count += 1
 	if server_owned:
 		body.set_network_master(1)
 	
 	cache_parent_methods()
-	previous_full_state = Networking.State.new(fill_properties(), 0, OS.get_system_time_msecs())
+	previous_full_state = Networking.NetState.new(fill_properties(), 0, OS.get_system_time_msecs())
 	
 	sync_timer.autostart = true
 	sync_timer.wait_time = (1.0 / updates_per_second)
@@ -72,7 +73,7 @@ func send_state():
 	update_count += 1
 	
 	# Nulls state variables that are the same to save bandwidth.
-	var state: Networking.State = Networking.State.new(fill_properties(), fill_booleans(), OS.get_system_time_msecs())
+	var state: Networking.NetState = Networking.NetState.new(fill_properties(), fill_booleans(), OS.get_system_time_msecs())
 	
 	#Calculates if a required packet should be sent.
 	if is_required_update():
@@ -96,7 +97,7 @@ func send_state():
 	reset_update_count()
 
 # Sets the received variables in the parent object.
-func interpolate_state(old_state: Networking.State, new_state: Networking.State, interp_ratio: float = .5):
+func interpolate_state(old_state: Networking.NetState, new_state: Networking.NetState, interp_ratio: float = .5):
 	#if old_state.timestamp >= new_state.timestamp: return
 	
 	for num in new_state.custom_data.size():
@@ -121,7 +122,7 @@ func is_required_update() -> bool:
 	return (calculation != 0) and (update_count % int(round(updates_per_second / calculation)) == 0)
 
 # Updates the previous full state var and returns if the state has new data.
-func was_changed(new_state: Networking.State) -> bool:
+func was_changed(new_state: Networking.NetState) -> bool:
 	for num in new_state.custom_data.size():
 		if new_state.custom_data[num] != previous_full_state.custom_data[num]:
 			return true
@@ -131,7 +132,7 @@ func was_changed(new_state: Networking.State) -> bool:
 	
 	return false
 
-func set_states_null(state: Networking.State) -> void:
+func set_states_null(state: Networking.NetState) -> void:
 	for num in state.custom_data.size():
 		if state.custom_data[num] != previous_full_state.custom_data[num]:
 			state.custom_data[num] = null
@@ -141,7 +142,7 @@ func reset_update_count() -> void:
 			update_count = 0
 
 # Sets the previous full state by ignoring null values.
-func set_previous_full_state(new_state: Networking.State):
+func set_previous_full_state(new_state: Networking.NetState):
 	for property in previous_full_state.custom_data.size():
 		if new_state.custom_data[property] != null:
 			previous_full_state.custom_data[property] = new_state.custom_data[property]
@@ -151,9 +152,11 @@ func set_previous_full_state(new_state: Networking.State):
 func _exit_tree():
 	Networking.networked_objects_count -= 1
 	Networking.remove_timestamp(body.name)
+	Networking.cached_node_paths.erase(body.name)
 	
 	if is_instance_valid(get_tree().network_peer) and is_network_master():
 		rpc("delete_object")
 
 remote func delete_object():
+	Networking.cached_node_paths.erase(body.name)
 	body.queue_free()

@@ -1,6 +1,6 @@
 extends Node
 # Networking interface that allows for easy networking implementation.
-# Any generic networking actions (state changes) will go through this interface.
+# Any generic networking actions (NetState changes) will go through this interface.
 
 # Default port for networking.
 const DEFAULT_PORT := 34197
@@ -125,6 +125,7 @@ func _connected_fail():
 
 # Callback from SceneTree, only for clients (not server).
 func _server_disconnected():
+	get_tree().quit()
 	emit_signal("disconnected")
 
 remotesync func register_player_data(data: Dictionary):
@@ -215,6 +216,7 @@ func update_debug():
 	text += str("Player Ids: ", player_ids, "\n")
 	text += str("Custom player data: ", custom_player_data, "\n")
 	text += str("Timestamps: ", last_local_timestamps, "\n")
+	text += str("Cached Paths: ", cached_node_paths, "\n")
 	text += str("Number of Networked Objects: ", networked_objects_count, "\n")
 	
 	debug_label.text = text
@@ -263,62 +265,63 @@ remote func return_server_latency(client_time: int):
 remotesync func start_game(scene_path: String):
 	get_tree().change_scene(scene_path)
 
-# Sends the state of an object and its name to the server. If the server is
-# calling this, then the server state dictionary is updated or added to.
-func send_state(state: State, object_name: String):
+# Sends the NetState of an object and its name to the server. If the server is
+# calling this, then the server NetState dictionary is updated or added to.
+func send_state(state: NetState, object_name: String):
 	if !get_tree().is_network_server():
 		rpc_unreliable_id(1, "process_state", state.to_array(), object_name)
 	else:
 		server_local_states[object_name] = state
 
-# Processes the state by checking if the object name is empty. If so, then the
+# Processes the NetState by checking if the object name is empty. If so, then the
 # sender id is used for processing. This is called only on the server so that
-# the server can build dictionaries of all of the object states. Old timestamps
+# the server can build dictionaries of all of the object NetStates. Old timestamps
 # are discarded.
 remote func process_state(state_array: Array, object_name: String = ""):
-	var new_state: State = State.to_instance(state_array)
+	var new_state: NetState = NetState.to_instance(state_array)
 	var sender_id = str(get_tree().get_rpc_sender_id())
 	
 	#print("Sent by: ", sender_id, " obj name: ", object_name, " Staet: ", new_state.to_string())
 	if object_name.empty():
 		if server_received_states.has(sender_id):
-	# Check if new character state is fresh
+	# Check if new character NetState is fresh
 			check_timestamps(new_state, sender_id)
 		else:
 			server_received_states[sender_id] = new_state
 	elif server_received_states.has(object_name):
-		# Check if new character state is fresh
+		# Check if new character NetState is fresh
 		check_timestamps(new_state, sender_id)
 	else:
 		server_received_states[object_name] = new_state
 
-# Adds the state at the given name if its timestamp is more recent.
-func check_timestamps(new_state: State, added_name: String):
+# Adds the NetState at the given name if its timestamp is more recent.
+func check_timestamps(new_state: NetState, added_name: String):
 	if new_state.timestamp > server_received_states.get(added_name).timestamp:
-		var old_state: State = server_received_states[added_name]
+		var old_state: NetState = server_received_states[added_name]
 		server_received_states[added_name] = new_state
 		emit_signal("object_state_changed", new_state, added_name)
 		update_server_client_state(old_state, new_state, added_name)
 
-func update_server_client_state(old_state: State, new_state: State, object_name: String):
+func update_server_client_state(old_state: NetState, new_state: NetState, object_name: String):
 	var object = get_tree().get_current_scene().find_node(object_name, true, false)
 		
 	# If the node exists and you are not its master, then sync.
 	if object != null and !object.is_network_master():
-		object.get_node("NetworkSyncer").interpolate_state(old_state, new_state)
+		var interp_ratio = float(old_state.timestamp / new_state.timestamp)
+		object.get_node("NetworkSyncer").interpolate_state(old_state, new_state, interp_ratio)
 
 func remove_timestamp(object_name: String) -> void:
 	server_local_states.erase(object_name)
 	last_local_timestamps.erase(object_name)
 
-# Sends the world state from the server to all of the clients. States are
+# Sends the world NetState from the server to all of the clients. NetStates are
 # received from clients and added to dictionaries. Those dictionaries are then
 # combined and sent to all clients to be updated locally.
 func send_world_state():
 	if !server_received_states.empty() or !server_local_states.empty():
-		var states : Dictionary = {}
+		var NetStates : Dictionary = {}
 		
-		# Add the server local states to the state dictionary.
+		# Add the server local NetStates to the NetState dictionary.
 		for object_name in server_local_states:
 			if last_local_timestamps.has(object_name):
 				if last_local_timestamps[object_name] >= server_local_states[object_name].timestamp:
@@ -326,33 +329,33 @@ func send_world_state():
 				else:
 					last_local_timestamps[object_name] = server_local_states[object_name].timestamp
 					var local_state_array = server_local_states[object_name].to_array()
-					states[object_name] = local_state_array
+					NetStates[object_name] = local_state_array
 			else:
 				last_local_timestamps[object_name] = server_local_states[object_name].timestamp
 				var local_state_array = server_local_states[object_name].to_array()
-				states[object_name] = local_state_array
+				NetStates[object_name] = local_state_array
 			
-		# Add the received states from other players to the state dictionary.
+		# Add the received NetStates from other players to the NetState dictionary.
 		for object_name in server_received_states:
 			var local_state_array = server_received_states[object_name].to_array()
-			states[object_name] = local_state_array
+			NetStates[object_name] = local_state_array
 		
-		# Send the world state
+		# Send the world NetState
 		var world_state: Array = []
 		world_state.append(OS.get_system_time_msecs())
-		world_state.append(states)
+		world_state.append(NetStates)
 		
-		# Broadcasts the states to every client.
+		# Broadcasts the NetStates to every client.
 		rpc_unreliable_id(0, "update_world_state", world_state)
 
-# Checks if the world state is newer than the last received state, if so, then
-# add the state to the world state buffer for processing.
+# Checks if the world NetState is newer than the last received NetState, if so, then
+# add the NetState to the world NetState buffer for processing.
 puppet func update_world_state(new_world_state : Array):
 	if new_world_state[0] > last_world_state_timestamp and !get_tree().is_network_server():
 		last_world_state_timestamp = new_world_state[0]
 		world_state_buffer.append(new_world_state)
 
-# This is called on clients only. Processes the world state by calculating the 
+# This is called on clients only. Processes the world NetState by calculating the 
 # interpolation ratio.
 func process_world_state():
 	var render_time = OS.get_system_time_msecs() + server_time_difference + latency - 100
@@ -366,34 +369,31 @@ func process_world_state():
 		var new_world_state: Array = world_state_buffer[1]
 		world_state_changed(old_world_state, new_world_state, interp_ratio)
 
-# Receives the state from the process and sends the interpolation information
+# Receives the NetState from the process and sends the interpolation information
 # to the object if it is found in the root node.
 # TODO: Refactor to save nodepaths instead of finding the node every time.
 func world_state_changed(old_world_state: Array, new_world_state: Array, interp_ratio: float):
 	for object_name in new_world_state[1].keys():
-		# Caches the nodepath for performance.
 		var object: Node
 		if cached_node_paths.has(object_name):
 			object = get_node(cached_node_paths[object_name])
 		else:
-			object = get_tree().get_current_scene().find_node(object_name, true, false)
-			if object == null: return
-			cached_node_paths[object_name] = object.get_path()
+			return
 		
 		# If the node exists and you are not it's master, then sync.
 		if object != null and !object.is_network_master():
-			var new_state = Networking.State.to_instance(new_world_state[1][object_name])
+			var new_state = Networking.NetState.to_instance(new_world_state[1][object_name])
 			if !old_world_state[1].has(object_name): 
 				object.get_node("NetworkSyncer").interpolate_state(null, new_state, interp_ratio)
 				continue
-			var old_state = Networking.State.to_instance(old_world_state[1][object_name])
+			var old_state = Networking.NetState.to_instance(old_world_state[1][object_name])
 			if new_state != null:
 				object.get_node("NetworkSyncer").interpolate_state(old_state, new_state, interp_ratio)
 
 ################################################################################
 # Custom Classes
 
-# Long Bool is used to send object/character state data efficiently over a network.
+# Long Bool is used to send object/character NetState data efficiently over a network.
 # The data format used is an integer, and each individual bit is set and get 
 # individually as if they are a boolean.
 #
@@ -445,12 +445,12 @@ class LongBool:
 		return data & ~(1 << index)
 
 
-# State is used to send an object/character state over a network from a client
+# NetState is used to send an object/character NetState over a network from a client
 # to a server, and from a server back to every client.
 #
-# State provides two custom variables for holding any data individualized for
+# NetState provides two custom variables for holding any data individualized for
 # each different object and a generic int timestamp for interpolation purposes.
-class State:
+class NetState:
 	var custom_data: Array
 	var custom_bools: int
 	var timestamp: int
@@ -463,5 +463,5 @@ class State:
 	func to_array() -> Array:
 		return [custom_data, custom_bools, timestamp]
 	
-	static func to_instance(array : Array) -> State:
-		return State.new(array[0], array[1], array[2])
+	static func to_instance(array : Array) -> NetState:
+		return NetState.new(array[0], array[1], array[2])

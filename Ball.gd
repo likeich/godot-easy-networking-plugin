@@ -2,7 +2,7 @@ extends KinematicBody
 
 
 var direction := Vector2.ZERO
-var speed = .5
+var speed = 1
 var timesout = 0
 
 # Called when the node enters the scene tree for the first time.

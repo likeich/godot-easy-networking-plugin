@@ -1,6 +1,7 @@
 extends Control
 
 export var scene_to_start: String
+export var use_global_ip := true
 
 onready var connect = $Connect
 onready var lobby = $Lobby
@@ -13,9 +14,10 @@ func _ready():
 	var _err = Networking.connect("connection_succeeded", self, "_connected")
 	_err = Networking.connect("connection_failed", self, "_failure")
 	_err = Networking.connect("player_list_changed", self, "_players_changed")
-	_err = Networking.connect("global_ip_found", self, "set_global_ip")
+	if use_global_ip: _err = Networking.connect("global_ip_found", self, "set_global_ip")
 	_err = Networking.connect("player_data_changed", self, "update_players")
 	print(Networking.my_local_ip)
+	ip_box.text = Networking.my_local_ip
 	Networking.show_debug()
 
 func _connected():

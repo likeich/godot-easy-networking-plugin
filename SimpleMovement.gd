@@ -9,7 +9,7 @@ onready var ball = preload("res://Ball.tscn")
 func _ready():
 	var _err = Networking.create_players(player, self)
 	
-	for i in 500:
+	for i in 600:
 		var ball_ins = ball.instance()
 		ball_ins.name = "ball" + str(i)
 		add_child(ball_ins)
