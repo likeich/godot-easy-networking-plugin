@@ -1,5 +1,6 @@
 extends Node
 
+export var root_node: NodePath
 export var server_owned: bool = false
 export var synced_properties: PoolStringArray = [] # Where synced vars are placed.
 export var synced_booleans: PoolStringArray = [] # Maximum of up to 64 booleans
@@ -18,10 +19,14 @@ var parent_has_bool_setter := []
 onready var body = get_parent() # The object being networked.
 
 func _ready():
-	Networking.cached_node_paths[body.name] = body.get_path()
+	name = str(get_node(root_node).name, Networking.networked_objects_count)
+	Networking.cached_node_paths[name] = get_path()
 	Networking.networked_objects_count += 1
 	if server_owned:
 		body.set_network_master(1)
+	
+	if !Networking.is_server() and is_network_master():
+		Networking.rpc_id(1, "cache_local_path_on_server", name, get_path())
 	
 	cache_parent_methods()
 	previous_full_state = Networking.NetState.new(fill_properties(), 0, OS.get_system_time_msecs())
@@ -78,7 +83,7 @@ func send_state():
 	#Calculates if a required packet should be sent.
 	if is_required_update():
 		set_previous_full_state(state)
-		Networking.send_state(state, body.name)
+		Networking.send_state(state, name)
 		sync_timer.start((1 / updates_per_second))
 		reset_update_count()
 		
@@ -92,7 +97,7 @@ func send_state():
 		return
 	
 	set_previous_full_state(state)
-	Networking.send_state(state, body.name)
+	Networking.send_state(state, name)
 	sync_timer.start((1 / updates_per_second))
 	reset_update_count()
 
@@ -151,12 +156,14 @@ func set_previous_full_state(new_state: Networking.NetState):
 
 func _exit_tree():
 	Networking.networked_objects_count -= 1
-	Networking.remove_timestamp(body.name)
-	Networking.cached_node_paths.erase(body.name)
+	Networking.remove_timestamp(name)
+	Networking.cached_node_paths.erase(name)
 	
 	if is_instance_valid(get_tree().network_peer) and is_network_master():
+		if !Networking.is_server():
+			Networking.rpc_id(1, "remove_client_cached_path", name)
 		rpc("delete_object")
 
 remote func delete_object():
-	Networking.cached_node_paths.erase(body.name)
+	Networking.cached_node_paths.erase(name)
 	body.queue_free()

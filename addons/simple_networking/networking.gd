@@ -29,6 +29,7 @@ var server_local_states: Dictionary = {}
 var last_local_timestamps: Dictionary = {}
 var server_received_states: Dictionary = {}
 var cached_node_paths: Dictionary = {}
+var client_cached_node_paths: Dictionary = {}
 var last_world_state_timestamp: int = 0
 var world_state_buffer: Array = []
 
@@ -290,7 +291,7 @@ remote func process_state(state_array: Array, object_name: String = ""):
 			server_received_states[sender_id] = new_state
 	elif server_received_states.has(object_name):
 		# Check if new character NetState is fresh
-		check_timestamps(new_state, sender_id)
+		check_timestamps(new_state, object_name)
 	else:
 		server_received_states[object_name] = new_state
 
@@ -303,16 +304,25 @@ func check_timestamps(new_state: NetState, added_name: String):
 		update_server_client_state(old_state, new_state, added_name)
 
 func update_server_client_state(old_state: NetState, new_state: NetState, object_name: String):
-	var object = get_tree().get_current_scene().find_node(object_name, true, false)
+	var object
+	if client_cached_node_paths.has(object_name):
+		object = get_node(client_cached_node_paths[object_name])
 		
 	# If the node exists and you are not its master, then sync.
 	if object != null and !object.is_network_master():
 		var interp_ratio = float(old_state.timestamp / new_state.timestamp)
-		object.get_node("NetworkSyncer").interpolate_state(old_state, new_state, interp_ratio)
+		object.interpolate_state(old_state, new_state, interp_ratio)
 
 func remove_timestamp(object_name: String) -> void:
 	server_local_states.erase(object_name)
 	last_local_timestamps.erase(object_name)
+
+remote func cache_local_path_on_server(object_name: String, path: String) -> void:
+	client_cached_node_paths[object_name] = path
+	print(client_cached_node_paths)
+
+remote func remove_client_cached_path(object_name: String) -> void:
+	client_cached_node_paths.erase(object_name)
 
 # Sends the world NetState from the server to all of the clients. NetStates are
 # received from clients and added to dictionaries. Those dictionaries are then
@@ -384,11 +394,11 @@ func world_state_changed(old_world_state: Array, new_world_state: Array, interp_
 		if object != null and !object.is_network_master():
 			var new_state = Networking.NetState.to_instance(new_world_state[1][object_name])
 			if !old_world_state[1].has(object_name): 
-				object.get_node("NetworkSyncer").interpolate_state(null, new_state, interp_ratio)
+				object.interpolate_state(null, new_state, interp_ratio)
 				continue
 			var old_state = Networking.NetState.to_instance(old_world_state[1][object_name])
 			if new_state != null:
-				object.get_node("NetworkSyncer").interpolate_state(old_state, new_state, interp_ratio)
+				object.interpolate_state(old_state, new_state, interp_ratio)
 
 ################################################################################
 # Custom Classes

@@ -25,6 +25,7 @@ autostart = true
 
 [node name="NetworkSyncer" type="Node" parent="."]
 script = ExtResource( 2 )
+root_node = NodePath("..")
 server_owned = true
 synced_properties = PoolStringArray( "direction", "translation" )
 updates_per_second = 10.0
