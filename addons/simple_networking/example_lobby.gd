@@ -70,4 +70,5 @@ func update_players():
 		player_list.add_child(player)
 
 func set_global_ip():
-	ip_box.text = Networking.my_global_ip
+	pass
+	#ip_box.text = Networking.my_global_ip

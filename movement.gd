@@ -28,3 +28,6 @@ func _physics_process(_delta):
 
 func interpolate_translation(old: Vector3, new: Vector3, interp_ratio: float):
 	translation = lerp(old, new, interp_ratio)
+
+func interpolate_rotation(old: Vector3, new: Vector3, interp_ratio: float):
+	rotation = lerp(old, new, interp_ratio)

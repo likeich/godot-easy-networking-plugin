@@ -19,13 +19,13 @@ var parent_has_bool_setter := []
 onready var body = get_parent() # The object being networked.
 
 func _ready():
-	name = str(get_node(root_node).name, Networking.networked_objects_count)
+	name = str(get_node(root_node).name, "NS", get_network_syncer_count())
 	Networking.cached_node_paths[name] = get_path()
 	Networking.networked_objects_count += 1
 	if server_owned:
 		body.set_network_master(1)
 	
-	if !Networking.is_server() and is_network_master():
+	if is_instance_valid(get_tree().network_peer) and !Networking.is_server() and is_network_master():
 		Networking.rpc_id(1, "cache_local_path_on_server", name, get_path())
 	
 	cache_parent_methods()
@@ -36,6 +36,16 @@ func _ready():
 	sync_timer.one_shot = true
 	sync_timer.connect("timeout", self, "send_state")
 	add_child(sync_timer)
+
+# Returns the number of this network syncer for naming purposes.
+func get_network_syncer_count() -> int:
+	var syncer_count := 0
+	for child in get_node(root_node).get_children():
+		if child.get_class() == "NetworkSyncer":
+			syncer_count += 1
+			if child == self:
+				return syncer_count
+	return 0
 
 func cache_parent_methods() -> void:
 	for num in synced_properties.size():
@@ -167,3 +177,6 @@ func _exit_tree():
 remote func delete_object():
 	Networking.cached_node_paths.erase(name)
 	body.queue_free()
+
+func get_class() -> String:
+	return "NetworkSyncer"

@@ -25,3 +25,6 @@ func _on_MoveTimer_timeout():
 	direction = Vector2(rand_range(-1, 1), rand_range(-1, 1))
 	
 	if timesout > 5: direction = Vector2.ZERO
+
+func interpolate_translation(old: Vector3, new: Vector3, interp_ratio: float):
+	translation = lerp(old, new, interp_ratio)
