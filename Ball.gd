@@ -1,4 +1,4 @@
-extends KinematicBody
+extends CSGSphere
 
 
 var direction := Vector2.ZERO
