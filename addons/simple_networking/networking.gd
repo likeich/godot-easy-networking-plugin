@@ -166,7 +166,8 @@ func start_client(address: String = "127.0.0.1", port: int = DEFAULT_PORT):
 
 # Exits the network and resets all multiplayer data.
 func exit():
-	network.close_connection()
+	if network:
+		network.close_connection()
 	get_tree().set_network_peer(null)
 	network = null
 	player_ids = []
