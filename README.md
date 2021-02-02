@@ -23,6 +23,14 @@ The cloud icons are by Kenney - https://kenney.nl/
 6. On the player scene, add the NetworkSync node as a child of the root node. On it's array export variable, set the names of the variables to be synced. Ensure that the player objects that are puppets aren't going to receive player input.
 7. Test it out.
 
+**Q:** How do I use a NetworkSyncer node?
+
+**A:** Add it to whatever object you want to sync and set the root node as the main node of the scene (the root node MUST be individually named or the caching of the NetworkSyncer node will not work). Any object can have multiple network nodes as long as the root node is named in a unique way.
+
+**Q:** How do I delete a networked node over the network?
+
+**A:** You don't have to. The nodes will handle the networking of deletion automatically.
+
 **Q:** How do I add interpolation to reduce jitter?
 
 **A:** NetworkSyncer nodes check their parent for a custom property interpolating function in this format: "interpolate_[variable name from synced properties]". If the parent has this function, it will use that for interpolation by sending the old variable, new variable, and interpolation ratio. Place a function with that name in the parent.
