@@ -1,3 +1,4 @@
+tool
 extends Node
 
 export var root_node: NodePath
@@ -180,3 +181,10 @@ remote func delete_object():
 
 func get_class() -> String:
 	return "NetworkSyncer"
+
+func _get_configuration_warning() -> String:
+	if root_node == "":
+		return "Root Node must be set and named uniquely at runtime!"
+	elif synced_properties.size() == 0 and synced_booleans.size() == 0:
+		return "You should probably sync some variables."
+	return ""

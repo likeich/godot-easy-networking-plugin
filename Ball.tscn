@@ -3,12 +3,12 @@
 [ext_resource path="res://Ball.gd" type="Script" id=1]
 [ext_resource path="res://addons/simple_networking/network_syncer.gd" type="Script" id=2]
 
-[sub_resource type="SpatialMaterial" id=2]
+[sub_resource type="SpatialMaterial" id=1]
 albedo_color = Color( 1, 0, 0, 1 )
 
 [node name="CSGSphere" type="CSGSphere"]
 transform = Transform( 0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 0, 0 )
-material = SubResource( 2 )
+material = SubResource( 1 )
 script = ExtResource( 1 )
 
 [node name="MoveTimer" type="Timer" parent="."]
