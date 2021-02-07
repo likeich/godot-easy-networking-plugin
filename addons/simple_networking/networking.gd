@@ -16,6 +16,7 @@ signal connection_succeeded()
 signal connection_failed()
 signal disconnected()
 signal global_ip_found()
+signal peer_ready_for_objects(scene_name, requested_peer_id)
 
 signal object_state_changed(new_state, object_name)
 
@@ -45,8 +46,10 @@ var networked_objects_count := 0
 
 onready var http := HTTPRequest.new()
 onready var timer := Timer.new()
+onready var current_scene = get_tree().current_scene
 
 func _ready():
+	get_tree().connect("tree_changed", self, "_on_tree_changed")
 	# Connects all networking signals from the SceneTree to our signals.
 	get_tree().connect("network_peer_connected", self, "_player_connected")
 	get_tree().connect("network_peer_disconnected", self,"_player_disconnected")
@@ -81,6 +84,23 @@ func _physics_process(delta):
 func _process(delta):
 	if debug_label:
 		update_debug()
+
+# Clients tell the server when they have changed scenes so that the server can tell
+# other peers to create already-created nodes on this new connection.
+func _on_tree_changed():
+	if !is_inside_tree(): return
+	if get_tree().current_scene != current_scene and get_tree().current_scene != null and !is_server():
+		current_scene = get_tree().current_scene
+		rpc_id(1, "client_changed_scene", current_scene.name)
+
+# Called only on the server. Used to create nodes on players that just joined.
+remote func client_changed_scene(scene_name: String) -> void:
+	if scene_name == get_tree().current_scene.name:
+		print(scene_name, get_tree().get_rpc_sender_id())
+		rpc("create_objects_on_peer", scene_name, get_tree().get_rpc_sender_id())
+
+remotesync func create_objects_on_peer(curr_scene_name: String, on_peer: int) -> void:
+	emit_signal("peer_ready_for_objects", curr_scene_name, on_peer)
 
 func update_rate_timeout():
 	server_can_update = true
@@ -186,7 +206,9 @@ func create_players(player_object: PackedScene, their_parent: Node) -> Array:
 	return player_array
 
 remote func create_self_on_peers(resource: String, name: String, parent_path: NodePath):
-	print(resource, " ", name, " ", parent_path)
+	if get_node(parent_path).get_node_or_null(name): return # If node exists, stop
+	
+	#print(resource, " ", name, " ", parent_path)
 	var instance = load(resource).instance()
 	instance.name = name
 	instance.set_network_master(get_tree().get_rpc_sender_id())
@@ -263,6 +285,9 @@ remote func return_server_latency(client_time: int):
 remotesync func start_game(scene_path: String):
 	get_tree().change_scene(scene_path)
 
+remote func join_game(scene_path: String):
+	get_tree().change_scene(scene_path)
+
 # Sends the NetState of an object and its name to the server. If the server is
 # calling this, then the server NetState dictionary is updated or added to.
 func send_state(state: NetState, object_name: String):
@@ -316,7 +341,7 @@ func remove_timestamp(object_name: String) -> void:
 
 remote func cache_local_path_on_server(object_name: String, path: String) -> void:
 	client_cached_node_paths[object_name] = path
-	print(client_cached_node_paths)
+	#print(client_cached_node_paths)
 
 remote func remove_client_cached_path(object_name: String) -> void:
 	client_cached_node_paths.erase(object_name)

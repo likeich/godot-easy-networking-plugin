@@ -22,6 +22,7 @@ var network_sync_num: int
 onready var body = get_parent() # The object being networked.
 
 func _ready():
+	Networking.connect("peer_ready_for_objects", self, "create_node_on_client")
 	add_to_group(str(get_node(root_node).name, "NetworkSyncers"))
 	network_sync_num = get_network_syncer_count()
 	name = str(get_node(root_node).name, "NS", network_sync_num)
@@ -48,6 +49,14 @@ func peer_node_setup() -> void:
 	if is_instance_valid(get_tree().network_peer) and is_network_master() and network_sync_num == 1:
 		var root = get_node(root_node)
 		Networking.rpc_id(0, "create_self_on_peers", root.filename, root.name, root.get_parent().get_path())
+
+func create_node_on_client(scene_name: String, peer_id: int) -> void:
+	# If they aren't in the same scene, don't attempt to recreate this node.
+	if get_tree().current_scene.name != scene_name or network_sync_num != 1 or peer_id == get_tree().get_network_unique_id(): return
+	
+	print("Creating node")
+	var root = get_node(root_node)
+	Networking.rpc_id(peer_id, "create_self_on_peers", root.filename, root.name, root.get_parent().get_path())
 
 # Returns the number of this network syncer for naming purposes.
 func get_network_syncer_count() -> int:
