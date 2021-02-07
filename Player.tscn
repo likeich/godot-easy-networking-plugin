@@ -17,7 +17,6 @@ script = ExtResource( 3 )
 [node name="NetworkSyncer" type="Node" parent="ColorChanger"]
 script = ExtResource( 2 )
 root_node = NodePath("../..")
-server_owned = true
 synced_properties = PoolStringArray( "custom_color" )
 
 [node name="CSGBox" type="CSGBox" parent="ColorChanger"]

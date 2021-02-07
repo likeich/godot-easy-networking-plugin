@@ -185,16 +185,12 @@ func create_players(player_object: PackedScene, their_parent: Node) -> Array:
 	
 	return player_array
 
-#func create_server_objects(object: PackedScene, their_parent: Node, num := 1) -> Array:
-#	var object_array = []
-#
-#	for number in num:
-#		var new_obj = object.instance()
-#		new_obj.set_network_master(1)
-#		their_parent.add_child(new_obj)
-#		object_array.append(new_obj)
-#
-#	return object_array
+remote func create_self_on_peers(resource: String, name: String, parent_path: NodePath):
+	print(resource, " ", name, " ", parent_path)
+	var instance = load(resource).instance()
+	instance.name = name
+	instance.set_network_master(get_tree().get_rpc_sender_id())
+	get_node(parent_path).add_child(instance)
 
 func show_debug() -> void:
 	for child in get_children():

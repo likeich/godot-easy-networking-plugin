@@ -17,35 +17,47 @@ var parent_has_interpolator := []
 var parent_has_setter := []
 var parent_has_bool_setter := []
 
+var network_sync_num: int
+
 onready var body = get_parent() # The object being networked.
 
 func _ready():
-	name = str(get_node(root_node).name, "NS", get_network_syncer_count())
+	add_to_group(str(get_node(root_node).name, "NetworkSyncers"))
+	network_sync_num = get_network_syncer_count()
+	name = str(get_node(root_node).name, "NS", network_sync_num)
 	Networking.cached_node_paths[name] = get_path()
 	Networking.networked_objects_count += 1
 	if server_owned:
 		body.set_network_master(1)
 	
-	if is_instance_valid(get_tree().network_peer) and !Networking.is_server() and is_network_master():
-		Networking.rpc_id(1, "cache_local_path_on_server", name, get_path())
-	
 	cache_parent_methods()
-	previous_full_state = Networking.NetState.new(fill_properties(), 0, OS.get_system_time_msecs())
+	previous_full_state = Networking.NetState.new(fill_properties(), fill_booleans(), OS.get_system_time_msecs())
 	
 	sync_timer.autostart = true
 	sync_timer.wait_time = (1.0 / updates_per_second)
 	sync_timer.one_shot = true
 	sync_timer.connect("timeout", self, "send_state")
 	add_child(sync_timer)
+	
+	peer_node_setup()
+
+func peer_node_setup() -> void:
+	if is_instance_valid(get_tree().network_peer) and !Networking.is_server() and is_network_master():
+		Networking.rpc_id(1, "cache_local_path_on_server", name, get_path())
+	
+	if is_instance_valid(get_tree().network_peer) and is_network_master() and network_sync_num == 1:
+		var root = get_node(root_node)
+		Networking.rpc_id(0, "create_self_on_peers", root.filename, root.name, root.get_parent().get_path())
 
 # Returns the number of this network syncer for naming purposes.
 func get_network_syncer_count() -> int:
 	var syncer_count := 0
-	for child in get_node(root_node).get_children():
-		if child.get_class() == "NetworkSyncer":
-			syncer_count += 1
-			if child == self:
-				return syncer_count
+	
+	for child in get_tree().get_nodes_in_group(str(get_node(root_node).name, "NetworkSyncers")):
+		syncer_count += 1
+		if child == self:
+			return syncer_count
+	
 	return 0
 
 func cache_parent_methods() -> void:
