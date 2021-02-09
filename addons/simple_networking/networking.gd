@@ -208,7 +208,6 @@ func create_players(player_object: PackedScene, their_parent: Node) -> Array:
 remote func create_self_on_peers(resource: String, name: String, parent_path: NodePath):
 	if get_node(parent_path).get_node_or_null(name): return # If node exists, stop
 	
-	#print(resource, " ", name, " ", parent_path)
 	var instance = load(resource).instance()
 	instance.name = name
 	instance.set_network_master(get_tree().get_rpc_sender_id())
@@ -328,10 +327,13 @@ func check_timestamps(new_state: NetState, added_name: String):
 func update_server_client_state(old_state: NetState, new_state: NetState, object_name: String):
 	var object
 	if client_cached_node_paths.has(object_name):
-		object = get_node(client_cached_node_paths[object_name])
+		object = get_node_or_null(client_cached_node_paths[object_name])
 		
+	if object == null:
+		print("Requesting Puppet")
+		rpc_id(0, "request_puppet_creation", current_scene, client_cached_node_paths[object_name])
 	# If the node exists and you are not its master, then sync.
-	if object != null and !object.is_network_master():
+	elif !object.is_network_master():
 		var interp_ratio = float(old_state.timestamp / new_state.timestamp)
 		object.interpolate_state(old_state, new_state, interp_ratio)
 
@@ -403,17 +405,19 @@ func process_world_state():
 
 # Receives the NetState from the process and sends the interpolation information
 # to the object if it is found in the root node.
-# TODO: Refactor to save nodepaths instead of finding the node every time.
 func world_state_changed(old_world_state: Array, new_world_state: Array, interp_ratio: float):
 	for object_name in new_world_state[1].keys():
 		var object: Node
 		if cached_node_paths.has(object_name):
-			object = get_node(cached_node_paths[object_name])
+			object = get_node_or_null(cached_node_paths[object_name])
 		else:
 			return
 		
+		if object == null:
+			print("Requesting Puppet")
+			rpc_id(0, "request_puppet_creation", current_scene, cached_node_paths[object_name])
 		# If the node exists and you are not it's master, then sync.
-		if object != null and !object.is_network_master():
+		elif !object.is_network_master():
 			var new_state = Networking.NetState.to_instance(new_world_state[1][object_name])
 			if !old_world_state[1].has(object_name): 
 				object.interpolate_state(null, new_state, interp_ratio)
@@ -421,6 +425,11 @@ func world_state_changed(old_world_state: Array, new_world_state: Array, interp_
 			var old_state = Networking.NetState.to_instance(old_world_state[1][object_name])
 			if new_state != null:
 				object.interpolate_state(old_state, new_state, interp_ratio)
+
+remote func request_puppet_creation(curr_scene: String, object_path: NodePath) -> void:
+	var node = get_node_or_null(object_path)
+	if node and node.is_network_master():
+		node.create_node_on_client(curr_scene, get_tree().get_rpc_sender_id())
 
 ################################################################################
 # Custom Classes
