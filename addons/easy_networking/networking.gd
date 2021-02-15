@@ -429,8 +429,7 @@ func world_state_changed(old_world_state: Array, new_world_state: Array, interp_
 			return
 		
 		if object == null:
-			print("Requesting Puppet")
-			rpc_id(0, "request_puppet_creation", current_scene, cached_node_paths[object_name])
+			rpc_id(0, "request_puppet_creation", current_scene.name, cached_node_paths[object_name])
 		# If the node exists and you are not it's master, then sync.
 		elif !object.is_network_master():
 			var new_state = Networking.NetState.to_instance(new_world_state[1][object_name])

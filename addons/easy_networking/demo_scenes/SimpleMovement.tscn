@@ -2,10 +2,39 @@
 
 [ext_resource path="res://addons/easy_networking/demo_scenes/SimpleMovement.gd" type="Script" id=1]
 
-
 [node name="World" type="Spatial"]
 script = ExtResource( 1 )
 
 [node name="Camera" type="Camera" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8 )
 current = true
+
+[node name="UI" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MarginContainer" type="MarginContainer" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 25.0
+margin_top = 400.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="UI/MarginContainer"]
+margin_top = 42.0
+margin_right = 999.0
+margin_bottom = 158.0
+text = "Use the Arrow Keys to move your player.
+
+Use Q and E to Rotate your player.
+
+Press C to change your player color.
+
+Hold Spacebar to create balls."
