@@ -1,8 +1,8 @@
 extends Spatial
 
 
-onready var player = preload("res://Player.tscn")
-onready var ball = preload("res://Ball.tscn")
+onready var player = preload("res://demo_scenes/Player.tscn")
+onready var ball = preload("res://demo_scenes/Ball.tscn")
 
 
 # Called when the node enters the scene tree for the first time.

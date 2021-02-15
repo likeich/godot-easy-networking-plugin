@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://movement.gd" type="Script" id=1]
+[ext_resource path="res://demo_scenes/movement.gd" type="Script" id=1]
 [ext_resource path="res://addons/simple_networking/network_syncer.gd" type="Script" id=2]
-[ext_resource path="res://ColorChanger.gd" type="Script" id=3]
+[ext_resource path="res://demo_scenes/ColorChanger.gd" type="Script" id=3]
 
 [sub_resource type="SpatialMaterial" id=1]
 

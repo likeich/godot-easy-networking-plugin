@@ -11,7 +11,7 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-scene_to_start = "res://SimpleMovement.tscn"
+scene_to_start = "res://demo_scenes/SimpleMovement.tscn"
 
 [node name="Connect" type="Panel" parent="."]
 margin_left = 412.0

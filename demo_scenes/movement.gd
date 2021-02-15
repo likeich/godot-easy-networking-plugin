@@ -1,6 +1,6 @@
 extends KinematicBody
 
-onready var ball = preload("res://Ball.tscn")
+onready var ball = preload("res://demo_scenes/Ball.tscn")
 
 var ball_count = 0
 
