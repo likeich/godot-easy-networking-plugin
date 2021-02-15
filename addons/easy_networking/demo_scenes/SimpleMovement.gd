@@ -1,13 +1,13 @@
 extends Spatial
 
 
-onready var player = preload("res://demo_scenes/Player.tscn")
-onready var ball = preload("res://demo_scenes/Ball.tscn")
+onready var player = preload("res://addons/easy_networking/demo_scenes/Player.tscn")
+onready var ball = preload("res://addons/easy_networking/demo_scenes/Ball.tscn")
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	Networking.connect("player_list_changed", self, "player_connected")
+	var _err = Networking.connect("player_list_changed", self, "player_connected")
 	
 	var me = player.instance()
 	me.name = str(get_tree().get_network_unique_id())

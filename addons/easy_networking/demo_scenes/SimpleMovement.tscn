@@ -1,6 +1,7 @@
 [gd_scene load_steps=2 format=2]
 
-[ext_resource path="res://demo_scenes/SimpleMovement.gd" type="Script" id=1]
+[ext_resource path="res://addons/easy_networking/demo_scenes/SimpleMovement.gd" type="Script" id=1]
+
 
 [node name="World" type="Spatial"]
 script = ExtResource( 1 )

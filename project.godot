@@ -16,12 +16,12 @@ _global_script_class_icons={
 [application]
 
 config/name="Networking Plugin"
-run/main_scene="res://addons/simple_networking/Lobby.tscn"
+run/main_scene="res://addons/easy_networking/Lobby.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
-Networking="*res://addons/simple_networking/networking.gd"
+Networking="*res://addons/easy_networking/networking.gd"
 
 [compression]
 
@@ -35,7 +35,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "simple_networking" )
+enabled=PoolStringArray( "easy_networking" )
 
 [input]
 
