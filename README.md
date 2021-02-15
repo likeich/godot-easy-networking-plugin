@@ -13,7 +13,7 @@ The cloud icons are by Kenney - https://kenney.nl/
 
 # Basic Tutorial
 
-![til](https://github.com/likeich/Godot-Simple-Networking-Plugin/blob/main/preview.gif?raw=true)
+![til](https://github.com/likeich/Godot-Easy-Networking-Plugin/blob/main/github_assets/preview.gif?raw=true)
 
 1. Add the addons folder from this repo into your godot project.
 2. Enable the plugin and the autoload Networking script (Errors will show up, you will probably have to restart the editor a couple times)
