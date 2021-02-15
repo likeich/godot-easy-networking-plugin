@@ -43,7 +43,9 @@ func _ready():
 	peer_node_setup()
 
 func peer_node_setup() -> void:
-	if is_instance_valid(get_tree().network_peer) and !Networking.is_server() and is_network_master():
+	if is_instance_valid(get_tree().network_peer) and Networking.network_type == Networking.NETWORK_TYPES.PEER_TO_PEER:
+		Networking.rpc_id(0, "cache_local_path_on_server", name, get_path())
+	elif is_instance_valid(get_tree().network_peer) and !Networking.is_server() and is_network_master():
 		Networking.rpc_id(1, "cache_local_path_on_server", name, get_path())
 	
 	if is_instance_valid(get_tree().network_peer) and is_network_master() and network_sync_num == 1:

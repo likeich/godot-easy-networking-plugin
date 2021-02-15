@@ -8,6 +8,12 @@ const MAX_PLAYERS := 4095
 var my_global_ip := ""
 var my_local_ip := get_local_ip()
 var server_updates_per_second := 20.0
+var network_type := 0
+
+enum NETWORK_TYPES {
+	PEER_TO_PEER,
+	CLIENT_SERVER
+}
 
 # Signals to enable custom behavior in lobbies and matches.
 signal player_list_changed(player_list)
@@ -165,20 +171,22 @@ func get_local_ip() -> String:
 			return x
 	return ""
 
-func start_server(port: int = DEFAULT_PORT, max_players: int = MAX_PLAYERS):
+func start_server(port: int = DEFAULT_PORT, max_players: int = MAX_PLAYERS, net_type: int = NETWORK_TYPES.PEER_TO_PEER):
 	if network: # Close network if one has been created
 		network.close_connection()
 	
+	network_type = NETWORK_TYPES.PEER_TO_PEER
 	network = NetworkedMultiplayerENet.new()
 	network.compression_mode = NetworkedMultiplayerENet.COMPRESS_ZLIB
 	network.create_server(port, max_players)
 	get_tree().set_network_peer(network)
 	player_ids.append(1)
 
-func start_client(address: String = "127.0.0.1", port: int = DEFAULT_PORT):
+func start_client(address: String = "127.0.0.1", port: int = DEFAULT_PORT, net_type: int = NETWORK_TYPES.PEER_TO_PEER):
 	if network: # Close network if one has been created
 		network.close_connection()
 	
+	network_type = NETWORK_TYPES.PEER_TO_PEER
 	network = NetworkedMultiplayerENet.new()
 	network.compression_mode = NetworkedMultiplayerENet.COMPRESS_ZLIB
 	network.create_client(address, port)
@@ -290,10 +298,18 @@ remote func join_game(scene_path: String):
 # Sends the NetState of an object and its name to the server. If the server is
 # calling this, then the server NetState dictionary is updated or added to.
 func send_state(state: NetState, object_name: String):
-	if !get_tree().is_network_server():
+	
+	if network_type == NETWORK_TYPES.PEER_TO_PEER:
+		rpc_unreliable_id(0, "process_state", state.to_array(), object_name)
+	elif !get_tree().is_network_server():
 		rpc_unreliable_id(1, "process_state", state.to_array(), object_name)
 	else:
 		server_local_states[object_name] = state
+
+remote func peers_process_state(state_array, object_name: String = ""):
+	var new_state: NetState = NetState.to_instance(state_array)
+	var sender_id = str(get_tree().get_rpc_sender_id())
+	print(sender_id)
 
 # Processes the NetState by checking if the object name is empty. If so, then the
 # sender id is used for processing. This is called only on the server so that
@@ -303,7 +319,6 @@ remote func process_state(state_array: Array, object_name: String = ""):
 	var new_state: NetState = NetState.to_instance(state_array)
 	var sender_id = str(get_tree().get_rpc_sender_id())
 	
-	#print("Sent by: ", sender_id, " obj name: ", object_name, " Staet: ", new_state.to_string())
 	if object_name.empty():
 		if server_received_states.has(sender_id):
 	# Check if new character NetState is fresh
