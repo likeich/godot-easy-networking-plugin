@@ -7,6 +7,8 @@ A NetworkSyncer node that allows a user to type-in the properties of the parent 
 
 This is still in development, expect a lot of issues and missing features (interpolation being one of them).
 
+Check out the wiki tab on this Github for the documentation.
+
 The networking state-syncer is heavily based on vec64's Godot-Multiplayer-FPS https://github.com/vec64/Godot-Multiplayer-FPS
 
 The cloud icons are by Kenney - https://kenney.nl/
