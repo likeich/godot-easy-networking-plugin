@@ -98,7 +98,7 @@ func fill_properties() -> Array:
 
 # Used to create the state custom_bools from the booleans export var.
 func fill_booleans() -> int:
-	var lbool = Networking.LongBool.new()
+	var lbool = LongBool.new()
 	for property_num in synced_booleans.size():
 		lbool.set_value(property_num, body.get(synced_booleans[property_num]))
 	
@@ -148,7 +148,7 @@ func interpolate_state(old_state: Networking.NetState, new_state: Networking.Net
 		else:
 			body.set(synced_properties[num], new_state.custom_data[num])
 	
-	var lbool := Networking.LongBool.new(new_state.custom_bools)
+	var lbool: LongBool = LongBool.new(new_state.custom_bools)
 	for num in synced_booleans.size():
 		if parent_has_bool_setter[num]:
 			body.call("net_set_" + synced_booleans[num], lbool.get_value(num))

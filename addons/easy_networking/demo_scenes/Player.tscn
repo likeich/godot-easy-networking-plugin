@@ -29,5 +29,5 @@ shape = SubResource( 2 )
 script = ExtResource( 3 )
 root_node = NodePath("..")
 synced_properties = PoolStringArray( "translation", "rotation" )
-synced_booleans = PoolStringArray( "moving" )
+synced_booleans = PoolStringArray( "creating_balls" )
 update_percent_required = 50.0

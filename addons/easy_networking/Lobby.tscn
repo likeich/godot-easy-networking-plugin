@@ -176,6 +176,7 @@ margin_bottom = 180.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
 [connection signal="pressed" from="Connect/MarginContainer/VBoxContainer/HBoxContainer/HostButton" to="." method="_on_HostButton_pressed"]
 [connection signal="pressed" from="Connect/MarginContainer/VBoxContainer/HBoxContainer2/JoinButton" to="." method="_on_JoinButton_pressed"]
 [connection signal="pressed" from="Lobby/MarginContainer/VBoxContainer/HBoxContainer2/ExitButton" to="." method="_on_ExitButton_pressed"]
