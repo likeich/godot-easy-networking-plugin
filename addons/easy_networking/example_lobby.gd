@@ -16,7 +16,7 @@ func _ready():
 	_err = Networking.connect("player_list_changed", self, "_players_changed")
 	if use_global_ip: _err = Networking.connect("global_ip_found", self, "set_global_ip")
 	_err = Networking.connect("player_data_changed", self, "update_players")
-	print(Networking.my_local_ip)
+	print("Your local IP is " + Networking.my_local_ip)
 	ip_box.text = Networking.my_local_ip
 	Networking.show_debug()
 

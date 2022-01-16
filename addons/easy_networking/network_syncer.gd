@@ -55,7 +55,7 @@ func create_node_on_client(scene_name: String, peer_id: int) -> void:
 	# If they aren't in the same scene, don't attempt to recreate this node.
 	if get_tree().current_scene.name != scene_name or network_sync_num != 1 or peer_id == get_tree().get_network_unique_id(): return
 	
-	print("Creating node")
+	if Networking.print_debug_statements: print("Creating node")
 	var root = get_node(root_node)
 	Networking.rpc_id(peer_id, "create_self_on_peers", root.filename, root.name, root.get_parent().get_path())
 

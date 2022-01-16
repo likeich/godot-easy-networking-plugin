@@ -9,6 +9,7 @@ var my_global_ip := ""
 var my_local_ip := get_local_ip()
 var server_updates_per_second := 20.0
 var network_type := 0
+var print_debug_statements := false
 
 enum NETWORK_TYPES {
 	PEER_TO_PEER,
@@ -102,7 +103,7 @@ func _on_tree_changed():
 # Called only on the server. Used to create nodes on players that just joined.
 remote func client_changed_scene(scene_name: String) -> void:
 	if scene_name == get_tree().current_scene.name:
-		print(scene_name, get_tree().get_rpc_sender_id())
+		if print_debug_statements: print(scene_name, get_tree().get_rpc_sender_id())
 		rpc("create_objects_on_peer", scene_name, get_tree().get_rpc_sender_id())
 
 remotesync func create_objects_on_peer(curr_scene_name: String, on_peer: int) -> void:
@@ -162,7 +163,7 @@ remotesync func register_player_data(data: Dictionary):
 # Gets the device global IP from a web API.
 func set_my_global_ip(_result, _response_code, _headers, body):
 	my_global_ip = body.get_string_from_utf8()
-	print(my_global_ip)
+	if print_debug_statements: print("Your global IP is: " + my_global_ip)
 	emit_signal("global_ip_found")
 
 func get_local_ip() -> String:
@@ -286,7 +287,7 @@ remote func return_server_latency(client_time: int):
 				total_latency += latency_array[i]
 		delta_latency = (total_latency / latency_array.size()) - latency
 		latency = total_latency / latency_array.size()
-		print("LATENCY: ", latency)
+		if print_debug_statements: print("LATENCY: ", latency)
 		latency_array.clear()
 
 remotesync func start_game(scene_path: String):
@@ -309,7 +310,7 @@ func send_state(state: NetState, object_name: String):
 remote func peers_process_state(state_array, object_name: String = ""):
 	var new_state: NetState = NetState.to_instance(state_array)
 	var sender_id = str(get_tree().get_rpc_sender_id())
-	print(sender_id)
+	if print_debug_statements: print(sender_id)
 
 # Processes the NetState by checking if the object name is empty. If so, then the
 # sender id is used for processing. This is called only on the server so that
@@ -345,7 +346,7 @@ func update_server_client_state(old_state: NetState, new_state: NetState, object
 		object = get_node_or_null(client_cached_node_paths[object_name])
 		
 	if object == null:
-		print("Requesting Puppet")
+		if print_debug_statements: print("Requesting Puppet with name: " + object_name)
 		rpc_id(0, "request_puppet_creation", current_scene.name, client_cached_node_paths[object_name])
 	# If the node exists and you are not its master, then sync.
 	elif !object.is_network_master():
@@ -358,7 +359,6 @@ func remove_timestamp(object_name: String) -> void:
 
 remote func cache_local_path_on_server(object_name: String, path: String) -> void:
 	client_cached_node_paths[object_name] = path
-	#print(client_cached_node_paths)
 
 remote func remove_client_cached_path(object_name: String) -> void:
 	client_cached_node_paths.erase(object_name)
