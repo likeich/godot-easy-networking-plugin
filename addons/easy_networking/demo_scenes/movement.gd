@@ -16,13 +16,13 @@ func _physics_process(_delta):
 	if !is_network_master():
 		return
 	
-	if Input.is_key_pressed(KEY_UP):
+	if Input.is_action_pressed("ui_up"):
 		translation.y += speed
-	if Input.is_key_pressed(KEY_DOWN):
+	if Input.is_action_pressed("ui_down"):
 		translation.y -= speed
-	if Input.is_key_pressed(KEY_LEFT):
+	if Input.is_action_pressed("ui_left"):
 		translation.x -= speed
-	if Input.is_key_pressed(KEY_RIGHT):
+	if Input.is_action_pressed("ui_right"):
 		translation.x += speed
 	
 	if Input.is_key_pressed(KEY_Q):
