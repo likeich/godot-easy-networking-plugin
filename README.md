@@ -1,3 +1,5 @@
+### Check out the wiki tab on this Github for the documentation.
+
 # Simple Networking Plugin
 A plugin for the Godot game engine that provides a simple drag-and-drop networking interface that requires as little code as possible.
 
@@ -6,8 +8,6 @@ A Networking global script that provides many networking functions, including: s
 A NetworkSyncer node that allows a user to type-in the properties of the parent that need to be synced. Lastly, an example lobby for rapid prototyping that also functions as a lobby demo.
 
 This is still in development, expect a lot of issues and missing features (interpolation being one of them).
-
-Check out the wiki tab on this Github for the documentation.
 
 The networking state-syncer is heavily based on vec64's Godot-Multiplayer-FPS https://github.com/vec64/Godot-Multiplayer-FPS
 
